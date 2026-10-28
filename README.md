@@ -8,11 +8,17 @@ not in a full-screen clock app.
 
 - Completely transparent widget background: no panel, border, or background image.
 - Arabic-Indic numerals (`٠١٢٣٤٥٦٧٨٩`), including on English-language phones.
-- **Amiri**, **Scheherazade New**, and **Janna LT Bold** fonts, bundled offline.
+- Six offline fonts: **Amiri**, **Scheherazade New**, **Janna LT Bold**,
+  **Arslan Wessam A**, **18 Khebrat Musamim**, and **Avenir Heavy**.
   Select **Janna LT Bold** in the Arabic font dropdown; existing preferences are preserved.
-- Natural, 15%, or 30% wider numerals. Separator dots are a separate, unstretched view.
+- Natural, 15%, 30%, 50%, or 75% wider numerals. Separator dots are a separate, unstretched view.
 - White, gold, black, or any custom `#RRGGBB` text color; optional separator dots.
-- Adjustable text size (28–64 sp), automatically reduced for smaller widget spaces.
+- Adjustable text size **24–240 sp**, automatically reduced for smaller widget spaces.
+- **Fill available widget space · HUGE** fits the clock to the whole available area,
+  overriding the font size slider. Enlarge the widget using your launcher's resize handles.
+- **Stack hours above minutes** for tall clocks (no separator in this mode).
+- Spacing **0–40 dp**, inner margins **0–32 dp**, and text opacity **20–100%**.
+- Larger **72 sp** default for new installs; upgrades preserve existing choices.
 - Settings saved locally and applied to **all** placed instances, including supported lock-screen hosts.
 - Tap a placed widget to return to settings; resize via your launcher.
 - Local 24-hour time rendered to a transparent bitmap inside the app, using actual
@@ -49,6 +55,7 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 ## Install the APK
 
 Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
+Version **2.2.0** adds the uploaded fonts and huge-widget controls.
 Version **2.1.2** adds Janna LT Bold as a third selectable font.
 Version **2.1.1** fixes Western digits on launchers that ignore custom fonts.
 Version **2.1.0** applied the selected dark-felt debossed artwork as an adaptive
@@ -117,3 +124,5 @@ Janna LT Bold: **proprietary**, supplied with owner-confirmed embedding and
 redistribution permission; not covered by MIT or OFL.
 See [font attribution and reproduction instructions](licenses/README.md).
 Full font license texts are included in the repository and APK assets.
+
+Additional uploaded fonts retain their own licenses and notices; they are not MIT/OFL.

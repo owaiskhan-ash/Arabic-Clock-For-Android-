@@ -21,7 +21,7 @@ class WidgetTests(unittest.TestCase):
 
     def test_janna_is_unmodified_and_has_arabic_digits(self):
         path = RES / 'font/janna_lt_bold.ttf'
-        self.assertEqual(path.read_bytes(), (ROOT / 'Janna LT Bold.ttf').read_bytes())
+        self.assertEqual(path.read_bytes(), (ROOT / 'Fonts For clock/Janna LT Bold.ttf').read_bytes())
         font = TTFont(path)
         self.assertEqual(font['name'].getDebugName(1), 'Janna LT')
         self.assertEqual(font['name'].getDebugName(2), 'Bold')
@@ -31,6 +31,21 @@ class WidgetTests(unittest.TestCase):
             self.assertNotEqual(cmap[codepoint], '.notdef')
         settings = (ROOT / 'app/src/main/java/com/arabicclock/app/WidgetSettings.java').read_text()
         self.assertIn('case 2: return R.font.janna_lt_bold;', settings)
+
+    def test_new_fonts_are_unmodified_and_support_arabic(self):
+        fonts = {
+            'arslan_wessam': '(A) Arslan Wessam A (A) Arslan Wessam A.ttf',
+            'khebrat_musamim': '18 Khebrat Musamim Regular.ttf',
+            'avenir_heavy': 'Avenir Heavy.ttf',
+        }
+        for resource, filename in fonts.items():
+            with self.subTest(font=resource):
+                path = RES / 'font' / (resource + '.ttf')
+                self.assertEqual(path.read_bytes(), (ROOT / 'Fonts For clock' / filename).read_bytes())
+                cmap = TTFont(path).getBestCmap()
+                for codepoint in range(0x660, 0x66a):
+                    self.assertIn(codepoint, cmap)
+                    self.assertNotEqual(cmap[codepoint], '.notdef')
 
     def test_widget_uses_bitmap_not_host_fonts(self):
         root = ET.parse(RES / 'layout/widget_bitmap.xml').getroot()

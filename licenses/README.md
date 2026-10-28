@@ -28,3 +28,11 @@ as `res/font/janna_lt_bold.ttf`. It is not an OFL font, and the app's MIT licens
 does not apply to it. See [the preserved notices](Janna-LT-Bold-NOTICE.txt).
 The owner's confirmation does not grant downstream users a font license;
 independent reuse or redistribution requires applicable permission.
+
+## Additional uploaded fonts
+
+Arslan Wessam A, 18 Khebrat Musamim, and Avenir Heavy are bundled unmodified from
+`Fonts For clock/` at the repository owner's request. Their embedded notices are
+preserved in the matching `*-NOTICE.txt` files here and in APK assets. They are
+**not** relicensed under MIT or OFL. Their use and redistribution remain subject
+to their respective font licenses; downstream users must obtain any required rights.

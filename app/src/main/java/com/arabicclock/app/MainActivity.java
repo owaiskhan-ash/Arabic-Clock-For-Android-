@@ -75,12 +75,12 @@ public class MainActivity extends Activity {
         scroll.addView(controls);
         controls.addView(label("Customize your widget", 20, gold));
         controls.addView(label("Changes apply to all placed widgets immediately.", 12, Color.LTGRAY));
-        addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade", "Janna LT Bold"}, settings.font(), "font");
-        addChoices(controls, "Numeral width (dots stay unchanged)", new String[]{"Natural", "+15%", "+30%"}, settings.stretch(), "stretch");
+        addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade", "Janna LT Bold", "Arslan Wessam A", "18 Khebrat Musamim", "Avenir Heavy"}, settings.font(), "font");
+        addChoices(controls, "Numeral width (dots stay unchanged)", new String[]{"Natural", "+15%", "+30%", "+50%", "+75%"}, settings.stretch(), "stretch");
         sizeLabel = label("Font size · " + settings.size() + " sp", 14, Color.WHITE);
         controls.addView(sizeLabel);
         SeekBar size = new SeekBar(this);
-        size.setMax(36); size.setProgress(settings.size() - 28);
+        size.setMax(216); size.setProgress(settings.size() - 24);
         size.setContentDescription("Widget font size");
         controls.addView(size, new LinearLayout.LayoutParams(-1, dp(48)));
         size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -88,12 +88,17 @@ public class MainActivity extends Activity {
             public void onStopTrackingTouch(SeekBar bar) { ClockWidgetProvider.updateAll(MainActivity.this); }
             public void onProgressChanged(SeekBar bar, int value, boolean user) {
                 if (!user) return;
-                settings.prefs.edit().putInt("size", value + 28).apply();
-                sizeLabel.setText("Font size · " + (value + 28) + " sp");
+                settings.prefs.edit().putInt("size", value + 24).apply();
+                sizeLabel.setText("Font size · " + (value + 24) + " sp");
                 renderPreview();
             }
         });
-        controls.addView(label("Automatically fits smaller widget spaces.", 12, Color.LTGRAY));
+        controls.addView(label("Up to 240 sp. Long-press and resize your home-screen widget for a larger clock. Fill mode overrides the size slider to use all available space.", 12, Color.LTGRAY));
+        addToggle(controls, "Fill available widget space · HUGE", "fill", settings.fill());
+        addToggle(controls, "Stack hours above minutes (no dots)", "stacked", settings.stacked());
+        addSlider(controls, "Spacing", "gap", 0, 40, settings.gap(), " dp");
+        addSlider(controls, "Inner margin", "margin", 0, 32, settings.margin(), " dp");
+        addSlider(controls, "Text opacity", "opacity", 20, 100, settings.opacity(), "%");
         colorLabel = label("", 14, Color.WHITE);
         controls.addView(colorLabel);
         LinearLayout colors = new LinearLayout(this);
@@ -145,6 +150,31 @@ public class MainActivity extends Activity {
         });
         controls.addView(label("Lock screen: add through your device’s lock-screen widget picker, if available. Android and manufacturer support varies; this app cannot replace the system lock-screen clock.", 13, Color.LTGRAY));
         changed();
+    }
+    private void addToggle(LinearLayout parent, String title, String key, boolean checked) {
+        Switch toggle = new Switch(this);
+        toggle.setText(title); toggle.setTextColor(Color.WHITE);
+        toggle.setMinHeight(dp(48)); toggle.setChecked(checked);
+        parent.addView(toggle);
+        toggle.setOnCheckedChangeListener((v, value) -> {
+            settings.prefs.edit().putBoolean(key, value).apply(); changed();
+        });
+    }
+    private void addSlider(LinearLayout parent, String title, String key, int min, int max, int value, String unit) {
+        TextView caption = label(title + " · " + value + unit, 14, Color.WHITE);
+        parent.addView(caption);
+        SeekBar slider = new SeekBar(this);
+        slider.setMax(max-min); slider.setProgress(value-min); slider.setContentDescription(title);
+        parent.addView(slider, new LinearLayout.LayoutParams(-1, dp(48)));
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onStartTrackingTouch(SeekBar bar) { }
+            public void onStopTrackingTouch(SeekBar bar) { ClockWidgetProvider.updateAll(MainActivity.this); }
+            public void onProgressChanged(SeekBar bar, int progress, boolean user) {
+                if (!user) return;
+                settings.prefs.edit().putInt(key, min+progress).apply();
+                caption.setText(title + " · " + (min+progress) + unit); renderPreview();
+            }
+        });
     }
     private void widgetHelp() {
         new AlertDialog.Builder(this).setTitle("Add a widget")

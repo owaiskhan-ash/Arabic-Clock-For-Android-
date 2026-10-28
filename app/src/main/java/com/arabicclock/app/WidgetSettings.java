@@ -8,18 +8,26 @@ final class WidgetSettings {
     final SharedPreferences prefs;
     WidgetSettings(Context c) { prefs = c.getSharedPreferences("widget", Context.MODE_PRIVATE); }
     int color() { return prefs.getInt("color", Color.WHITE); }
-    int size() { return Math.max(28, Math.min(64, prefs.getInt("size", 48))); }
-    int stretch() { return Math.max(0, Math.min(2, prefs.getInt("stretch", 1))); }
+    int size() { return Math.max(24, Math.min(240, prefs.getInt("size", 72))); }
+    int stretch() { return Math.max(0, Math.min(4, prefs.getInt("stretch", 1))); }
     int font() {
         int selected = prefs.getInt("font", 0);
-        return selected >= 0 && selected <= 2 ? selected : 0;
+        return selected >= 0 && selected <= 5 ? selected : 0;
     }
     int fontResource() {
         switch (font()) {
             case 1: return R.font.classic_arabic;
             case 2: return R.font.janna_lt_bold;
+            case 3: return R.font.arslan_wessam;
+            case 4: return R.font.khebrat_musamim;
+            case 5: return R.font.avenir_heavy;
             default: return R.font.long_arabic;
         }
     }
+    boolean fill() { return prefs.getBoolean("fill", false); }
+    boolean stacked() { return prefs.getBoolean("stacked", false); }
+    int gap() { return Math.max(0, Math.min(40, prefs.getInt("gap", 6))); }
+    int margin() { return Math.max(0, Math.min(32, prefs.getInt("margin", 8))); }
+    int opacity() { return Math.max(20, Math.min(100, prefs.getInt("opacity", 100))); }
     boolean dots() { return prefs.getBoolean("dots", true); }
 }
