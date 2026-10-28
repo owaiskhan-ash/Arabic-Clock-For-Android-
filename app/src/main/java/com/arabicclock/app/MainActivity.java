@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
     @Override protected void onPause() { ticker.removeCallbacks(previewTick); super.onPause(); }
     private WidgetSettings settings;
     private FrameLayout preview;
-    private TextView sizeLabel, colorLabel;
+    private TextView sizeLabel, colorLabel, outlineColorLabel;
     private final int gold = Color.rgb(220, 193, 138);
 
     @Override public void onCreate(Bundle state) {
@@ -98,7 +98,29 @@ public class MainActivity extends Activity {
         addToggle(controls, "Stack hours above minutes (no dots)", "stacked", settings.stacked());
         addSlider(controls, "Spacing", "gap", 0, 40, settings.gap(), " dp");
         addSlider(controls, "Inner margin", "margin", 0, 32, settings.margin(), " dp");
-        addSlider(controls, "Text opacity", "opacity", 20, 100, settings.opacity(), "%");
+        addSlider(controls, "Font opacity (0 = transparent, 100 = solid)", "opacity", 0, 100, settings.opacity(), "%");
+        controls.addView(label("Opacity affects both the fill and outline. At 0% the clock is invisible; tap its widget area to reopen settings.", 12, Color.LTGRAY));
+        addToggle(controls, "Enable font outline", "outline", settings.outline());
+        addToggle(controls, "Outline only · hollow numerals (requires outline)", "outlineOnly", settings.outlineOnly());
+        addSlider(controls, "Outline thickness (scales with clock)", "outlineWidth", 1, 8, settings.outlineWidth(), " dp");
+        outlineColorLabel = label("", 14, Color.WHITE);
+        controls.addView(outlineColorLabel);
+        LinearLayout outlineColors = new LinearLayout(this);
+        controls.addView(outlineColors);
+        String[] outlineNames = {"Black", "White", "Custom"};
+        for (int i = 0; i < outlineNames.length; i++) {
+            final int choice = i;
+            Button button = new Button(this);
+            button.setText(outlineNames[i]); button.setAllCaps(false);
+            outlineColors.addView(button, new LinearLayout.LayoutParams(0, dp(48), 1));
+            button.setOnClickListener(v -> {
+                if (choice == 2) customColor("outlineColor", "Outline color", settings.outlineColor());
+                else {
+                    settings.prefs.edit().putInt("outlineColor", choice == 0 ? Color.BLACK : Color.WHITE).apply();
+                    changed();
+                }
+            });
+        }
         colorLabel = label("", 14, Color.WHITE);
         controls.addView(colorLabel);
         LinearLayout colors = new LinearLayout(this);
@@ -112,7 +134,7 @@ public class MainActivity extends Activity {
             button.setPadding(0,0,0,0);
             colors.addView(button, new LinearLayout.LayoutParams(0, dp(48), 1));
             button.setOnClickListener(v -> {
-                if (index == 3) customColor();
+                if (index == 3) customColor("color", "Widget text color", settings.color());
                 else { settings.prefs.edit().putInt("color", values[index]).apply(); changed(); }
             });
         }
@@ -197,21 +219,22 @@ public class MainActivity extends Activity {
             }
         });
     }
-    private void customColor() {
+    private void customColor(String key, String title, int currentColor) {
         EditText input = new EditText(this);
         input.setSingleLine(true); input.setHint("#RRGGBB");
-        input.setText(String.format(Locale.US, "#%06X", settings.color() & 0xffffff));
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Widget text color")
+        input.setText(String.format(Locale.US, "#%06X", currentColor & 0xffffff));
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle(title)
             .setView(input).setNegativeButton("Cancel", null).setPositiveButton("Apply", null).create();
         dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String value = input.getText().toString().trim();
             if (!value.matches("#[0-9a-fA-F]{6}")) { input.setError("Enter a color like #DCC18A"); return; }
-            settings.prefs.edit().putInt("color", Color.parseColor(value)).apply();
+            settings.prefs.edit().putInt(key, Color.parseColor(value)).apply();
             changed(); dialog.dismiss();
         }));
         dialog.show();
     }
     private void changed() {
+        if (outlineColorLabel != null) outlineColorLabel.setText(String.format(Locale.US, "Outline color · #%06X", settings.outlineColor() & 0xffffff));
         if (colorLabel != null) colorLabel.setText(String.format(Locale.US, "Text color · #%06X", settings.color() & 0xffffff));
         renderPreview();
         ClockWidgetProvider.updateAll(this);

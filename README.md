@@ -17,7 +17,11 @@ not in a full-screen clock app.
 - **Fill available widget space · HUGE** fits the clock to the whole available area,
   overriding the font size slider. Enlarge the widget using your launcher's resize handles.
 - **Stack hours above minutes** for tall clocks (no separator in this mode).
-- Spacing **0–40 dp**, inner margins **0–32 dp**, and text opacity **20–100%**.
+- Spacing **0–40 dp**, inner margins **0–32 dp**, and text opacity **0–100%**.
+- Optional **font outline**, with black, white, or custom hex color and **1–8 dp**
+  thickness (scales with the clock). **Outline only** creates hollow numerals.
+- Opacity applies once to the combined fill and outline: 0% is invisible, 100% solid.
+  The invisible widget remains tappable to reopen settings. Background stays transparent.
 - Larger **72 sp** default for new installs; upgrades preserve existing choices.
 - Settings saved locally and applied to **all** placed instances, including supported lock-screen hosts.
 - Tap a placed widget to return to settings; resize via your launcher.
@@ -55,6 +59,7 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 ## Install the APK
 
 Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
+Version **2.3.0** adds font outlines and full-range font opacity.
 Version **2.2.0** adds the uploaded fonts and huge-widget controls.
 Version **2.1.2** adds Janna LT Bold as a third selectable font.
 Version **2.1.1** fixes Western digits on launchers that ignore custom fonts.
@@ -113,6 +118,8 @@ Build/lint and static font checks are not a substitute for device testing:
 - Check behavior after Doze/unlock; sleeping-device updates may be delayed.
 - Change device time zone and language; check local time and Arabic-Indic digits.
 - Resize, rotate, increase system font size, reboot, and verify no clipping/stale time.
+- Test opacity at 0/25/50/100%, filled/outline-only modes, maximum outline thickness,
+  all fonts, stacked mode, and zero-margin HUGE mode; verify edges are not clipped.
 - Test on light and dark wallpapers; confirm no widget background or stretched dots.
 - Test launcher pinning and manual addition, including cancellation.
 - Where supported, add a lock-screen instance and check settings/time updates.

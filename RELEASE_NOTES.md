@@ -1,29 +1,26 @@
-## Arabic Clock 2.2.0 — More fonts & huge widgets (test release)
+## Arabic Clock 2.3.0 — Font transparency & outlines (test release)
 
-- Adds Arslan Wessam A, 18 Khebrat Musamim, and Avenir Heavy alongside Janna LT Bold, Amiri, and Scheherazade: six selectable fonts total.
-- Font size range expanded to **24–240 sp**, with a larger 72 sp default for new installations. Existing preferences remain unchanged.
-- **Fill available widget space · HUGE** scales the clock to the available area, overriding the size slider.
-- **Stack hours above minutes** for large, tall widgets (separator dots hidden in this mode).
-- Numeral width up to **+75%**; dots are never horizontally stretched.
-- Adjustable spacing (0–40 dp), inner margins (0–32 dp), and text opacity (20–100%).
-- Visible digit bounds replace oversized font line metrics to make better use of space with calligraphic fonts.
-- Widget background stays completely transparent. Preview and widgets use the same bitmap renderer.
+- Font opacity now supports **0–100%**, with explicit transparent/solid labels.
+- New **Enable font outline** switch (off by default, preserving existing appearance).
+- **Outline thickness:** 1–8 dp, scaled together with the clock.
+- **Outline color:** black, white, or a custom `#RRGGBB` value, independent of fill color.
+- **Outline only** for hollow numerals when the outline switch is enabled.
+- Preview and all placed widgets use the same renderer. Opacity applies to the combined
+  outline and fill without double-darkening overlapping passes. Layout reserves space
+  for the stroke, including in HUGE and stacked modes.
+- Background remains completely transparent. Separator dots remain unstretched.
 
-### Make your clock huge
-Install `Arabic-Clock-2.2.0.apk` (Android 8+). Open the app, choose a font, and enable
-**Fill available widget space · HUGE**. Long-press your home-screen widget and drag
-its resize handles to enlarge it. For a tall clock enable **Stack hours above minutes**.
-The app cannot enlarge the launcher grid allocation itself; available space is controlled by your launcher.
+### Use
+Install `Arabic-Clock-2.3.0.apk`, open the app, and scroll through settings to
+**Font opacity** and **Enable font outline**. At 0% the clock is invisible but the
+widget area remains tappable so you can reopen settings. Existing settings are retained.
 
-On Android 12+, grant **Allow precise clock updates** → Alarms & reminders.
-Sleep, Doze and manufacturer restrictions may delay updates. Lock-screen widget
-availability depends on the device.
+Android 8+ required. On Android 12+ allow Alarms & reminders for precise updates;
+Doze/battery restrictions can still delay refreshes. Lock-screen widgets require host support.
 
-This APK is debug-signed for testing. If installation conflicts with an earlier
-build, uninstall that build first (settings and widgets will be removed).
-A SHA-256 checksum is attached.
+This is a debug-signed test release. If Android refuses an update because the previous
+build has a different signature, uninstall it first (this removes saved preferences and
+placed widgets). A SHA-256 checksum is attached.
 
-Uploaded fonts are bundled unmodified with their embedded notices, and are not
-covered by the app MIT license. Reuse requires the applicable font permissions.
-Build/lint, numeral unit tests and font/resource checks are automated. Physical-device
-and launcher-specific validation is still required.
+Build/lint, numeral unit tests, and static font/resource checks run in CI.
+Visual validation on physical devices/launchers is still required.

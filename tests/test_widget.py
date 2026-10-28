@@ -59,6 +59,19 @@ class WidgetTests(unittest.TestCase):
         self.assertIn('getResources().getFont', renderer)
         self.assertIn('dots.setTextScaleX(1f)', renderer)
 
+    def test_outline_and_opacity_rendering_contract(self):
+        renderer = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockRenderer.java').read_text()
+        self.assertIn('canvas.saveLayerAlpha', renderer)
+        self.assertIn('canvas.restoreToCount(layer)', renderer)
+        self.assertIn('Paint.Style.STROKE', renderer)
+        self.assertIn('Paint.Join.ROUND', renderer)
+        self.assertIn('float extra = stroke / 2', renderer)
+        self.assertIn('!settings.outline() || !settings.outlineOnly()', renderer)
+        settings = (ROOT / 'app/src/main/java/com/arabicclock/app/WidgetSettings.java').read_text()
+        self.assertIn('Math.max(0, Math.min(100, prefs.getInt("opacity", 100)))', settings)
+        self.assertIn('prefs.getBoolean("outline", false)', settings)
+        self.assertIn('prefs.getInt("outlineWidth", 2)', settings)
+
     def test_provider_hosts_and_refresh_permissions(self):
         root = ET.parse(RES / 'xml/clock_widget.xml').getroot()
         self.assertEqual(root.get(A+'widgetCategory'), 'home_screen|keyguard')

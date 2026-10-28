@@ -28,6 +28,10 @@ final class WidgetSettings {
     boolean stacked() { return prefs.getBoolean("stacked", false); }
     int gap() { return Math.max(0, Math.min(40, prefs.getInt("gap", 6))); }
     int margin() { return Math.max(0, Math.min(32, prefs.getInt("margin", 8))); }
-    int opacity() { return Math.max(20, Math.min(100, prefs.getInt("opacity", 100))); }
+    int opacity() { return Math.max(0, Math.min(100, prefs.getInt("opacity", 100))); }
+    boolean outline() { return prefs.getBoolean("outline", false); }
+    boolean outlineOnly() { return prefs.getBoolean("outlineOnly", false); }
+    int outlineWidth() { return Math.max(1, Math.min(8, prefs.getInt("outlineWidth", 2))); }
+    int outlineColor() { return prefs.getInt("outlineColor", Color.BLACK); }
     boolean dots() { return prefs.getBoolean("dots", true); }
 }
