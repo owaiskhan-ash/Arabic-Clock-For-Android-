@@ -1,181 +1,189 @@
 package com.arabicclock.app;
 
 import android.app.Activity;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.content.Context;
-import android.content.SharedPreferences;
+import android.app.AlertDialog;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.Switch;
-import android.widget.TextView;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Calendar;
+import android.widget.*;
 import java.util.Locale;
-import java.util.TimeZone;
 
+/** A single screen: live transparent-widget preview above scrollable settings. */
 public class MainActivity extends Activity {
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private WidgetSettings settings;
+    private FrameLayout preview;
+    private TextView sizeLabel, colorLabel;
     private final int gold = Color.rgb(220, 193, 138);
-    private final int muted = Color.rgb(149, 171, 173);
-    private boolean arabic, twentyFour;
-    private TextView time, date, zone;
-    private ClockFace clock;
-    private SharedPreferences prefs;
-    private final Runnable tick = new Runnable() {
-        @Override public void run() {
-            refresh();
-            handler.postDelayed(this, 1000 - System.currentTimeMillis() % 1000);
-        }
-    };
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        prefs = getSharedPreferences("clock", MODE_PRIVATE);
-        arabic = prefs.getBoolean("arabic", true);
-        twentyFour = prefs.getBoolean("24hour", false);
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.rgb(16, 28, 32));
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setGravity(Gravity.CENTER_HORIZONTAL);
-        root.setPadding(dp(24), dp(28), dp(24), dp(24));
-        scroll.addView(root);
-        // Respect system bars, including Android 15's enforced edge-to-edge layout.
-        scroll.setOnApplyWindowInsetsListener((v, insets) -> {
+        settings = new WidgetSettings(this);
+        LinearLayout root = column();
+        root.setBackgroundColor(Color.rgb(16, 28, 32));
+        root.setOnApplyWindowInsetsListener((v, insets) -> {
             v.setPadding(insets.getSystemWindowInsetLeft(), insets.getSystemWindowInsetTop(),
                     insets.getSystemWindowInsetRight(), insets.getSystemWindowInsetBottom());
             return insets;
         });
-        setContentView(scroll);
-        root.addView(label("الساعة العربية", 30, gold));
-        TextView subtitle = label("A R A B I C   C L O C K", 12, muted);
-        subtitle.setPadding(0, dp(8), 0, dp(20));
-        root.addView(subtitle);
-        clock = new ClockFace(this);
-        root.addView(clock, new LinearLayout.LayoutParams(-1, dp(310)));
-        time = label("", 42, Color.WHITE);
-        time.setTextDirection(View.TEXT_DIRECTION_LTR);
-        time.setPadding(0, dp(20), 0, dp(8));
-        root.addView(time);
-        date = label("", 16, muted);
-        root.addView(date);
-        zone = label("", 12, gold);
-        zone.setPadding(0, dp(12), 0, dp(28));
-        root.addView(zone);
-        addToggle(root, "Arabic numerals · ١٢٣", arabic, "arabic");
-        addToggle(root, "24-hour time", twentyFour, "24hour");
-        addToggle(root, "Keep screen awake", prefs.getBoolean("awake", false), "awake");
-        applyAwake(prefs.getBoolean("awake", false));
-        refresh();
-    }
+        setContentView(root);
 
-    private void addToggle(LinearLayout root, String title, boolean checked, String key) {
-        Switch toggle = new Switch(this);
-        toggle.setText(title);
-        toggle.setTextSize(16);
-        toggle.setTextColor(Color.WHITE);
-        toggle.setPadding(dp(8), dp(12), dp(8), dp(12));
-        toggle.setMinHeight(dp(56));
-        toggle.setChecked(checked);
-        root.addView(toggle, new LinearLayout.LayoutParams(-1, -2));
-        toggle.setOnCheckedChangeListener((button, value) -> {
-            prefs.edit().putBoolean(key, value).apply();
-            if (key.equals("arabic")) arabic = value;
-            if (key.equals("24hour")) twentyFour = value;
-            if (key.equals("awake")) applyAwake(value);
-            refresh();
+        LinearLayout top = column();
+        top.setGravity(Gravity.CENTER_HORIZONTAL);
+        top.setPadding(dp(20), dp(16), dp(20), dp(8));
+        root.addView(top, new LinearLayout.LayoutParams(-1, 0, 1));
+        TextView title = label("الساعة العربية  ·  Arabic Clock", 22, gold);
+        title.setGravity(Gravity.CENTER);
+        top.addView(title);
+        TextView caption = label("LIVE WIDGET PREVIEW", 11, Color.LTGRAY);
+        caption.setGravity(Gravity.CENTER);
+        top.addView(caption);
+        preview = new FrameLayout(this);
+        top.addView(preview, new LinearLayout.LayoutParams(-1, 0, 1));
+        preview.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob) -> {
+            if (r-l != or-ol || b-t != ob-ot) renderPreview();
+        });
+        TextView transparency = label("100% transparent · checkerboard is preview only", 12, Color.LTGRAY);
+        transparency.setGravity(Gravity.CENTER);
+        top.addView(transparency);
+
+        ScrollView scroll = new ScrollView(this);
+        root.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        LinearLayout controls = column();
+        controls.setPadding(dp(24), dp(8), dp(24), dp(24));
+        scroll.addView(controls);
+        controls.addView(label("Customize your widget", 20, gold));
+        controls.addView(label("Changes apply to all placed widgets immediately.", 12, Color.LTGRAY));
+        addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade"}, settings.font(), "font");
+        addChoices(controls, "Numeral width (dots stay unchanged)", new String[]{"Natural", "+15%", "+30%"}, settings.stretch(), "stretch");
+        sizeLabel = label("Font size · " + settings.size() + " sp", 14, Color.WHITE);
+        controls.addView(sizeLabel);
+        SeekBar size = new SeekBar(this);
+        size.setMax(36); size.setProgress(settings.size() - 28);
+        size.setContentDescription("Widget font size");
+        controls.addView(size, new LinearLayout.LayoutParams(-1, dp(48)));
+        size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            public void onStartTrackingTouch(SeekBar bar) { }
+            public void onStopTrackingTouch(SeekBar bar) { ClockWidgetProvider.updateAll(MainActivity.this); }
+            public void onProgressChanged(SeekBar bar, int value, boolean user) {
+                if (!user) return;
+                settings.prefs.edit().putInt("size", value + 28).apply();
+                sizeLabel.setText("Font size · " + (value + 28) + " sp");
+                renderPreview();
+            }
+        });
+        controls.addView(label("Automatically fits smaller widget spaces.", 12, Color.LTGRAY));
+        colorLabel = label("", 14, Color.WHITE);
+        controls.addView(colorLabel);
+        LinearLayout colors = new LinearLayout(this);
+        controls.addView(colors);
+        String[] names = {"White", "Gold", "Black", "Custom"};
+        int[] values = {Color.WHITE, gold, Color.BLACK};
+        for (int i=0; i<names.length; i++) {
+            final int index = i;
+            Button button = new Button(this);
+            button.setText(names[i]); button.setTextSize(11); button.setAllCaps(false);
+            button.setPadding(0,0,0,0);
+            colors.addView(button, new LinearLayout.LayoutParams(0, dp(48), 1));
+            button.setOnClickListener(v -> {
+                if (index == 3) customColor();
+                else { settings.prefs.edit().putInt("color", values[index]).apply(); changed(); }
+            });
+        }
+        Switch dots = new Switch(this);
+        dots.setText("Show separator dots  :"); dots.setTextColor(Color.WHITE);
+        dots.setMinHeight(dp(48)); dots.setChecked(settings.dots());
+        controls.addView(dots);
+        dots.setOnCheckedChangeListener((v, checked) -> {
+            settings.prefs.edit().putBoolean("dots", checked).apply(); changed();
+        });
+        Button add = new Button(this);
+        add.setText("Add home-screen widget");
+        controls.addView(add);
+        add.setOnClickListener(v -> {
+            AppWidgetManager manager = AppWidgetManager.getInstance(this);
+            if (manager.isRequestPinAppWidgetSupported()) {
+                boolean requested = manager.requestPinAppWidget(new ComponentName(this, ClockWidgetProvider.class), null, null);
+                if (!requested) widgetHelp();
+            } else widgetHelp();
+        });
+        controls.addView(label("Lock screen: add through your device’s lock-screen widget picker, if available. Android and manufacturer support varies; this app cannot replace the system lock-screen clock.", 13, Color.LTGRAY));
+        changed();
+    }
+    private void widgetHelp() {
+        new AlertDialog.Builder(this).setTitle("Add a widget")
+            .setMessage("Long-press an empty area on your home screen, choose Widgets, then Arabic Clock. Drag the widget onto your home screen. Resize it by long-pressing it.")
+            .setPositiveButton("OK", null).show();
+    }
+    private void addChoices(LinearLayout parent, String title, String[] options, int selected, String key) {
+        parent.addView(label(title, 14, Color.WHITE));
+        Spinner spinner = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, options);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter); spinner.setSelection(selected);
+        spinner.setContentDescription(title);
+        parent.addView(spinner, new LinearLayout.LayoutParams(-1, dp(48)));
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            public void onNothingSelected(AdapterView<?> p) { }
+            public void onItemSelected(AdapterView<?> p, View v, int position, long id) {
+                if (settings.prefs.getInt(key, key.equals("stretch") ? 1 : 0) == position) return;
+                settings.prefs.edit().putInt(key, position).apply(); changed();
+            }
         });
     }
-
-    private void applyAwake(boolean awake) {
-        if (awake) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    private void customColor() {
+        EditText input = new EditText(this);
+        input.setSingleLine(true); input.setHint("#RRGGBB");
+        input.setText(String.format(Locale.US, "#%06X", settings.color() & 0xffffff));
+        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("Widget text color")
+            .setView(input).setNegativeButton("Cancel", null).setPositiveButton("Apply", null).create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String value = input.getText().toString().trim();
+            if (!value.matches("#[0-9a-fA-F]{6}")) { input.setError("Enter a color like #DCC18A"); return; }
+            settings.prefs.edit().putInt("color", Color.parseColor(value)).apply();
+            changed(); dialog.dismiss();
+        }));
+        dialog.show();
     }
-    private TextView label(String value, int size, int color) {
-        TextView text = new TextView(this);
-        text.setText(value);
-        text.setTextSize(size);
-        text.setTextColor(color);
-        text.setGravity(Gravity.CENTER);
-        return text;
+    private void changed() {
+        if (colorLabel != null) colorLabel.setText(String.format(Locale.US, "Text color · #%06X", settings.color() & 0xffffff));
+        renderPreview();
+        ClockWidgetProvider.updateAll(this);
+    }
+    private void renderPreview() {
+        if (preview == null) return;
+        preview.removeAllViews();
+        View checkerboard = new View(this) {
+            final Paint paint = new Paint();
+            @Override protected void onDraw(Canvas c) {
+                int cell = dp(16);
+                for (int y=0; y<getHeight(); y+=cell) for (int x=0; x<getWidth(); x+=cell) {
+                    paint.setColor(((x/cell+y/cell)%2==0) ? 0xff64777a : 0xff718488);
+                    c.drawRect(x,y,x+cell,y+cell,paint);
+                }
+            }
+        };
+        preview.addView(checkerboard, new FrameLayout.LayoutParams(-1,-1));
+        View face = getLayoutInflater().inflate(settings.layout(), preview, false);
+        float density = getResources().getDisplayMetrics().density;
+        int width = preview.getWidth() > 0 ? (int)(preview.getWidth()/density) : 280;
+        int height = preview.getHeight() > 0 ? (int)(preview.getHeight()/density) : 180;
+        float size = ClockWidgetProvider.fittingSize(this, settings, width, height);
+        for (int id : new int[]{R.id.hours, R.id.minutes, R.id.separator}) {
+            TextView text = face.findViewById(id);
+            text.setTextColor(settings.color()); text.setTextSize(size);
+        }
+        face.findViewById(R.id.separator).setVisibility(settings.dots() ? View.VISIBLE : View.GONE);
+        preview.addView(face, new FrameLayout.LayoutParams(-1,-1));
+    }
+    private LinearLayout column() { LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.VERTICAL); return v; }
+    private TextView label(String text, int size, int color) {
+        TextView v = new TextView(this); v.setText(text); v.setTextSize(size); v.setTextColor(color);
+        v.setPadding(0,dp(5),0,dp(5)); return v;
     }
     private int dp(int n) { return Math.round(n * getResources().getDisplayMetrics().density); }
-    private String digits(String text) {
-        if (!arabic) return text;
-        StringBuilder result = new StringBuilder();
-        for (char c : text.toCharArray()) result.append(c >= '0' && c <= '9' ? (char) ('٠' + c - '0') : c);
-        return result.toString();
-    }
-    private void refresh() {
-        Date now = new Date();
-        time.setText(digits(new SimpleDateFormat(twentyFour ? "HH:mm:ss" : "hh:mm:ss a", Locale.US).format(now)));
-        date.setText(digits(new SimpleDateFormat("EEEE, d MMMM yyyy", Locale.getDefault()).format(now)));
-        TimeZone tz = TimeZone.getDefault();
-        zone.setText(tz.getID().replace('_', ' ') + " · " + tz.getDisplayName(tz.inDaylightTime(now), TimeZone.SHORT));
-        clock.invalidate();
-    }
-    @Override protected void onResume() { super.onResume(); handler.post(tick); }
-    @Override protected void onPause() { handler.removeCallbacks(tick); super.onPause(); }
-
-    private class ClockFace extends View {
-        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        ClockFace(Context context) { super(context); setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO); }
-        @Override protected void onDraw(Canvas canvas) {
-            super.onDraw(canvas);
-            float cx = getWidth() / 2f, cy = getHeight() / 2f;
-            float r = Math.min(cx, cy) - dp(8);
-            canvas.save();
-            canvas.translate(cx, cy);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(Color.rgb(23, 40, 44));
-            canvas.drawCircle(0, 0, r, paint);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(dp(1));
-            paint.setColor(gold);
-            canvas.drawCircle(0, 0, r, paint);
-            paint.setStyle(Paint.Style.FILL);
-            for (int i = 0; i < 60; i++) {
-                canvas.save(); canvas.rotate(i * 6);
-                paint.setColor(i % 5 == 0 ? gold : muted);
-                paint.setStrokeWidth(i % 5 == 0 ? dp(2) : dp(1));
-                canvas.drawLine(0, -r + dp(9), 0, -r + dp(i % 5 == 0 ? 19 : 13), paint);
-                canvas.restore();
-            }
-            paint.setTextAlign(Paint.Align.CENTER);
-            paint.setTextSize(r * .16f);
-            paint.setColor(gold);
-            for (int i = 1; i <= 12; i++) {
-                double angle = Math.toRadians(i * 30 - 90);
-                float x = (float) Math.cos(angle) * r * .72f;
-                float y = (float) Math.sin(angle) * r * .72f - (paint.ascent() + paint.descent()) / 2;
-                canvas.drawText(digits(String.valueOf(i)), x, y, paint);
-            }
-            Calendar now = Calendar.getInstance();
-            float seconds = now.get(Calendar.SECOND);
-            float minutes = now.get(Calendar.MINUTE) + seconds / 60;
-            float hours = now.get(Calendar.HOUR) + minutes / 60;
-            hand(canvas, hours * 30, r * .44f, dp(5), gold);
-            hand(canvas, minutes * 6, r * .61f, dp(3), Color.WHITE);
-            hand(canvas, seconds * 6, r * .65f, dp(1), gold);
-            paint.setColor(gold);
-            canvas.drawCircle(0, 0, dp(5), paint);
-            canvas.restore();
-        }
-        private void hand(Canvas c, float degrees, float length, float width, int color) {
-            c.save(); c.rotate(degrees);
-            paint.setColor(color); paint.setStrokeWidth(width); paint.setStrokeCap(Paint.Cap.ROUND);
-            c.drawLine(0, dp(8), 0, -length, paint);
-            c.restore();
-        }
-    }
 }
