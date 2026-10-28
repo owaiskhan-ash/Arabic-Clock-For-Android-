@@ -1,0 +1,10 @@
+18 Khebrat Musamim Regular.ttf
+
+User-supplied font, bundled unmodified at the repository owner’s request.
+Not covered by the application MIT license or other fonts’ OFL licenses.
+Use and redistribution remain subject to the applicable font license.
+
+Embedded font notices:
+
+18 Khebrat Musamim
+

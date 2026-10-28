@@ -1,0 +1,14 @@
+(A) Arslan Wessam A (A) Arslan Wessam A.ttf
+
+User-supplied font, bundled unmodified at the repository owner’s request.
+Not covered by the application MIT license or other fonts’ OFL licenses.
+Use and redistribution remain subject to the applicable font license.
+
+Embedded font notices:
+
+© by:- Arslan -- Dev-Point.com.
+
+Arslan -- Dev-Point.com.
+
+http://www.dev-point.com/vb/members/127441.html
+

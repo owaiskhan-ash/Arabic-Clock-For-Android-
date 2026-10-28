@@ -1,0 +1,15 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.arabicclock.app'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.arabicclock.app'
+        minSdk 26
+        targetSdk 35
+        versionCode 7
+        versionName '2.3.0'
+    }
+}
+
+dependencies { testImplementation 'junit:junit:4.13.2' }
