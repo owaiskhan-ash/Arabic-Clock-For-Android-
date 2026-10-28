@@ -1,7 +1,7 @@
 # Font attribution
 
-The application source is MIT-licensed. The bundled fonts are separately licensed
-under the SIL Open Font License 1.1; see the accompanying full license files.
+The application source is MIT-licensed. The Amiri and Scheherazade subsets are separately licensed
+under the SIL Open Font License 1.1. Janna LT Bold is proprietary; see below.
 
 | Bundled family | Original | Source |
 | --- | --- | --- |
@@ -19,3 +19,12 @@ install Python `fonttools`, and run:
 ```
 python tools/prepare_fonts.py /path/to/Amiri-Regular.ttf /path/to/ScheherazadeNew-Regular.ttf
 ```
+
+## Janna LT Bold (proprietary)
+
+The repository owner supplied `Janna LT Bold.ttf` and confirmed Android app
+embedding and redistribution permission. It is bundled **without modification**
+as `res/font/janna_lt_bold.ttf`. It is not an OFL font, and the app's MIT license
+does not apply to it. See [the preserved notices](Janna-LT-Bold-NOTICE.txt).
+The owner's confirmation does not grant downstream users a font license;
+independent reuse or redistribution requires applicable permission.

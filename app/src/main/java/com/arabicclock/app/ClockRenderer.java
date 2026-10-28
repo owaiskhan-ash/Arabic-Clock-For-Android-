@@ -22,7 +22,7 @@ final class ClockRenderer {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint digits = new Paint(Paint.ANTI_ALIAS_FLAG);
-        digits.setTypeface(c.getResources().getFont(settings.font() == 0 ? R.font.long_arabic : R.font.classic_arabic));
+        digits.setTypeface(c.getResources().getFont(settings.fontResource()));
         digits.setTextSize(settings.size() * c.getResources().getDisplayMetrics().scaledDensity);
         digits.setTextScaleX(new float[]{1f, 1.15f, 1.3f}[settings.stretch()]);
         digits.setColor(settings.color());

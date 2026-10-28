@@ -10,7 +10,7 @@ A = '{http://schemas.android.com/apk/res/android}'
 
 class WidgetTests(unittest.TestCase):
     def test_fonts_always_render_arabic_indic_digits(self):
-        for path in (RES / 'font').glob('*.ttf'):
+        for path in [RES / 'font/long_arabic.ttf', RES / 'font/classic_arabic.ttf']:
             with self.subTest(font=path.name):
                 font = TTFont(path)
                 cmap = font.getBestCmap()
@@ -18,6 +18,19 @@ class WidgetTests(unittest.TestCase):
                     self.assertEqual(cmap[48+i], cmap[0x660+i])
                     self.assertEqual(cmap[0x6f0+i], cmap[0x660+i])
                 self.assertTrue(font['name'].getDebugName(1).startswith('Arabic Clock'))
+
+    def test_janna_is_unmodified_and_has_arabic_digits(self):
+        path = RES / 'font/janna_lt_bold.ttf'
+        self.assertEqual(path.read_bytes(), (ROOT / 'Janna LT Bold.ttf').read_bytes())
+        font = TTFont(path)
+        self.assertEqual(font['name'].getDebugName(1), 'Janna LT')
+        self.assertEqual(font['name'].getDebugName(2), 'Bold')
+        cmap = font.getBestCmap()
+        for codepoint in range(0x660, 0x66a):
+            self.assertIn(codepoint, cmap)
+            self.assertNotEqual(cmap[codepoint], '.notdef')
+        settings = (ROOT / 'app/src/main/java/com/arabicclock/app/WidgetSettings.java').read_text()
+        self.assertIn('case 2: return R.font.janna_lt_bold;', settings)
 
     def test_widget_uses_bitmap_not_host_fonts(self):
         root = ET.parse(RES / 'layout/widget_bitmap.xml').getroot()

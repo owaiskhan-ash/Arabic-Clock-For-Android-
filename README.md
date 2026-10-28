@@ -8,7 +8,8 @@ not in a full-screen clock app.
 
 - Completely transparent widget background: no panel, border, or background image.
 - Arabic-Indic numerals (`٠١٢٣٤٥٦٧٨٩`), including on English-language phones.
-- Long-style **Amiri** and classic **Scheherazade New** numeral fonts, bundled offline.
+- **Amiri**, **Scheherazade New**, and **Janna LT Bold** fonts, bundled offline.
+  Select **Janna LT Bold** in the Arabic font dropdown; existing preferences are preserved.
 - Natural, 15%, or 30% wider numerals. Separator dots are a separate, unstretched view.
 - White, gold, black, or any custom `#RRGGBB` text color; optional separator dots.
 - Adjustable text size (28–64 sp), automatically reduced for smaller widget spaces.
@@ -48,6 +49,7 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 ## Install the APK
 
 Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
+Version **2.1.2** adds Janna LT Bold as a third selectable font.
 Version **2.1.1** fixes Western digits on launchers that ignore custom fonts.
 Version **2.1.0** applied the selected dark-felt debossed artwork as an adaptive
 launcher icon. The felt background is **only on the app icon**; the widget stays
@@ -110,6 +112,8 @@ Build/lint and static font checks are not a substitute for device testing:
 
 ## License
 
-Application code: [MIT](LICENSE). Bundled modified fonts: **SIL Open Font License 1.1**.
+Application code: [MIT](LICENSE). Amiri/Scheherazade subsets: **SIL Open Font License 1.1**.
+Janna LT Bold: **proprietary**, supplied with owner-confirmed embedding and
+redistribution permission; not covered by MIT or OFL.
 See [font attribution and reproduction instructions](licenses/README.md).
 Full font license texts are included in the repository and APK assets.

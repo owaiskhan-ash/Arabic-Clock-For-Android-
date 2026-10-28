@@ -75,7 +75,7 @@ public class MainActivity extends Activity {
         scroll.addView(controls);
         controls.addView(label("Customize your widget", 20, gold));
         controls.addView(label("Changes apply to all placed widgets immediately.", 12, Color.LTGRAY));
-        addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade"}, settings.font(), "font");
+        addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade", "Janna LT Bold"}, settings.font(), "font");
         addChoices(controls, "Numeral width (dots stay unchanged)", new String[]{"Natural", "+15%", "+30%"}, settings.stretch(), "stretch");
         sizeLabel = label("Font size · " + settings.size() + " sp", 14, Color.WHITE);
         controls.addView(sizeLabel);
