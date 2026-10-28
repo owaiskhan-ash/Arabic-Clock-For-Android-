@@ -15,6 +15,23 @@ import java.util.Locale;
 
 /** A single screen: live transparent-widget preview above scrollable settings. */
 public class MainActivity extends Activity {
+    private final android.os.Handler ticker = new android.os.Handler(android.os.Looper.getMainLooper());
+    private TextView precisionStatus;
+    private final Runnable previewTick = new Runnable() {
+        public void run() {
+            renderPreview();
+            ticker.postDelayed(this, 60000 - System.currentTimeMillis() % 60000);
+        }
+    };
+    @Override protected void onResume() {
+        super.onResume();
+        ticker.post(previewTick);
+        ClockWidgetProvider.updateAll(this);
+        if (precisionStatus != null) precisionStatus.setText(ClockWidgetProvider.preciseUpdatesAllowed(this)
+            ? "Precise minute updates enabled. Sleeping/battery-restricted devices may defer updates."
+            : "Allow precise updates below; otherwise Android may delay the clock by several minutes.");
+    }
+    @Override protected void onPause() { ticker.removeCallbacks(previewTick); super.onPause(); }
     private WidgetSettings settings;
     private FrameLayout preview;
     private TextView sizeLabel, colorLabel;
@@ -101,6 +118,21 @@ public class MainActivity extends Activity {
         dots.setOnCheckedChangeListener((v, checked) -> {
             settings.prefs.edit().putBoolean("dots", checked).apply(); changed();
         });
+        precisionStatus = label("", 13, Color.LTGRAY);
+        controls.addView(precisionStatus);
+        Button precision = new Button(this);
+        precision.setText("Allow precise clock updates");
+        controls.addView(precision);
+        precision.setOnClickListener(v -> {
+            if (android.os.Build.VERSION.SDK_INT >= 31 && !ClockWidgetProvider.preciseUpdatesAllowed(this)) {
+                try {
+                    startActivity(new android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                        android.net.Uri.parse("package:" + getPackageName())));
+                } catch (android.content.ActivityNotFoundException e) {
+                    Toast.makeText(this, "Open system settings → Apps → Special access → Alarms & reminders", Toast.LENGTH_LONG).show();
+                }
+            } else Toast.makeText(this, "Precise updates are already enabled", Toast.LENGTH_SHORT).show();
+        });
         Button add = new Button(this);
         add.setText("Add home-screen widget");
         controls.addView(add);
@@ -168,16 +200,14 @@ public class MainActivity extends Activity {
             }
         };
         preview.addView(checkerboard, new FrameLayout.LayoutParams(-1,-1));
-        View face = getLayoutInflater().inflate(settings.layout(), preview, false);
         float density = getResources().getDisplayMetrics().density;
         int width = preview.getWidth() > 0 ? (int)(preview.getWidth()/density) : 280;
         int height = preview.getHeight() > 0 ? (int)(preview.getHeight()/density) : 180;
-        float size = ClockWidgetProvider.fittingSize(this, settings, width, height);
-        for (int id : new int[]{R.id.hours, R.id.minutes, R.id.separator}) {
-            TextView text = face.findViewById(id);
-            text.setTextColor(settings.color()); text.setTextSize(size);
-        }
-        face.findViewById(R.id.separator).setVisibility(settings.dots() ? View.VISIBLE : View.GONE);
+        ImageView face = new ImageView(this);
+        face.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        long now = System.currentTimeMillis();
+        face.setImageBitmap(ClockRenderer.render(this, settings, width, height, now));
+        face.setContentDescription(ClockRenderer.time(now));
         preview.addView(face, new FrameLayout.LayoutParams(-1,-1));
     }
     private LinearLayout column() { LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.VERTICAL); return v; }

@@ -19,29 +19,26 @@ class WidgetTests(unittest.TestCase):
                     self.assertEqual(cmap[0x6f0+i], cmap[0x660+i])
                 self.assertTrue(font['name'].getDebugName(1).startswith('Arabic Clock'))
 
-    def test_all_layouts_transparent_and_only_digits_stretch(self):
-        layouts = list((RES / 'layout').glob('widget_*.xml'))
-        self.assertEqual(len(layouts), 6)
-        for path in layouts:
-            with self.subTest(layout=path.name):
-                root = ET.parse(path).getroot()
-                self.assertEqual(root.get(A+'background'), '@android:color/transparent')
-                clocks = root.findall('TextClock')
-                self.assertEqual(len(clocks), 2)
-                self.assertEqual([c.get(A+'format24Hour') for c in clocks], ['HH', 'mm'])
-                self.assertEqual([c.get(A+'format12Hour') for c in clocks], ['HH', 'mm'])
-                self.assertEqual(root.find('TextView').get(A+'text'), ':')
-                self.assertIsNone(root.find('TextView').get(A+'textScaleX'))
-                expected = ['1.0', '1.15', '1.3'][int(path.stem[-1])]
-                for clock in clocks:
-                    self.assertEqual(clock.get(A+'textScaleX'), expected)
+    def test_widget_uses_bitmap_not_host_fonts(self):
+        root = ET.parse(RES / 'layout/widget_bitmap.xml').getroot()
+        self.assertEqual(root.get(A+'background'), '@android:color/transparent')
+        self.assertIsNotNone(root.find('ImageView'))
+        self.assertEqual(root.findall('.//TextClock'), [])
+        provider = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockWidgetProvider.java').read_text()
+        self.assertIn('setImageViewBitmap', provider)
+        renderer = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockRenderer.java').read_text()
+        self.assertIn('ArabicDigits.convert', renderer)
+        self.assertIn('getResources().getFont', renderer)
+        self.assertIn('dots.setTextScaleX(1f)', renderer)
 
-    def test_provider_is_eligible_for_both_hosts_without_polling(self):
+    def test_provider_hosts_and_refresh_permissions(self):
         root = ET.parse(RES / 'xml/clock_widget.xml').getroot()
         self.assertEqual(root.get(A+'widgetCategory'), 'home_screen|keyguard')
-        self.assertEqual(root.get(A+'updatePeriodMillis'), '0')
+        self.assertEqual(root.get(A+'initialLayout'), '@layout/widget_bitmap')
         manifest = ET.parse(ROOT / 'app/src/main/AndroidManifest.xml').getroot()
-        self.assertEqual(manifest.findall('uses-permission'), [])
+        permissions = {e.get(A+'name') for e in manifest.findall('uses-permission')}
+        self.assertEqual(permissions, {'android.permission.RECEIVE_BOOT_COMPLETED',
+                                       'android.permission.SCHEDULE_EXACT_ALARM'})
 
 if __name__ == '__main__':
     unittest.main()

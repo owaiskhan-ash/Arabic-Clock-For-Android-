@@ -14,12 +14,20 @@ not in a full-screen clock app.
 - Adjustable text size (28–64 sp), automatically reduced for smaller widget spaces.
 - Settings saved locally and applied to **all** placed instances, including supported lock-screen hosts.
 - Tap a placed widget to return to settings; resize via your launcher.
-- Native Android `TextClock`: local 24-hour time, automatic minute/time-zone changes,
-  without a background service, minute alarms, network access, or battery permissions.
+- Local 24-hour time rendered to a transparent bitmap inside the app, using actual
+  Arabic-Indic Unicode digits and the selected bundled font. Launchers cannot replace
+  those digits with an English fallback font.
+- Minute refresh alarms, with no foreground/background service or network access.
+  On Android 12+, enable **Allow precise clock updates** → Alarms & reminders.
+  Without this optional access, Android may batch updates and the time may lag.
+  Non-wakeup alarms intentionally do not wake sleeping devices; Doze/manufacturer
+  battery restrictions can defer updates (including on lock screens). The clock also
+  refreshes when opening settings, on time/time-zone changes, and after reboot.
+  A 30-minute widget-host update is a fallback if an alarm is lost.
 - No ads, accounts, tracking, or internet permission.
 
 The preview checkerboard illustrates transparency. **It is never part of the widget.**
-The live preview uses the same layout and fitting logic as the widget; actual size
+The live preview uses the same bitmap renderer as the widget; actual size
 depends on the space your launcher gives it.
 
 ## Requirements and lock-screen support
@@ -40,7 +48,8 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 ## Install the APK
 
 Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
-Version **2.1.0** applies the selected dark-felt debossed artwork as an adaptive
+Version **2.1.1** fixes Western digits on launchers that ignore custom fonts.
+Version **2.1.0** applied the selected dark-felt debossed artwork as an adaptive
 launcher icon. The felt background is **only on the app icon**; the widget stays
 fully transparent. Release APKs are currently debug-signed test builds, with SHA-256 checksums.
 The selected source artwork is preserved in `artwork/launcher-icon.png`.
@@ -62,7 +71,7 @@ privately stored release-signing key.
 ## Add and customize
 
 1. Open Arabic Clock and choose a font, numeral width, size, color, and separator style.
-2. Tap **Add home-screen widget**, then confirm in your launcher.
+2. Enable **Allow precise clock updates** if prompted, then tap **Add home-screen widget** and confirm in your launcher.
 3. If pinning isn't supported, long-press an empty home-screen area → Widgets → Arabic Clock.
 4. Long-press the widget to resize. Tap it to reopen settings.
 5. For supported lock screens, use the **device's** lock-screen widget picker separately.
@@ -76,7 +85,7 @@ Install JDK 17, Android SDK platform 35, and Gradle 8.10.2. Set `ANDROID_HOME`
 or `sdk.dir` in `local.properties`:
 
 ```sh
-gradle --no-daemon assembleDebug lintDebug
+gradle --no-daemon assembleDebug lintDebug testDebugUnitTest
 # Optional source/font regression checks (Python + fonttools):
 python -m unittest discover -s tests -v
 ```
@@ -90,6 +99,9 @@ Build/lint and static font checks are not a substitute for device testing:
 
 - Add two home-screen instances; change every setting and verify both update.
 - Close the activity; verify the widget advances across minute/hour/midnight boundaries.
+- Grant/revoke Alarms & reminders access; verify the fallback, then reopen settings.
+- Verify Arabic digits on English-language Pixel/Samsung/third-party launchers.
+- Check behavior after Doze/unlock; sleeping-device updates may be delayed.
 - Change device time zone and language; check local time and Arabic-Indic digits.
 - Resize, rotate, increase system font size, reboot, and verify no clipping/stale time.
 - Test on light and dark wallpapers; confirm no widget background or stretched dots.

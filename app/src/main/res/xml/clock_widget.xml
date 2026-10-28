@@ -2,9 +2,9 @@
     android:minWidth="250dp" android:minHeight="80dp"
     android:minResizeWidth="180dp" android:minResizeHeight="60dp"
     android:targetCellWidth="4" android:targetCellHeight="2"
-    android:updatePeriodMillis="0"
-    android:initialLayout="@layout/widget_long_1"
-    android:previewLayout="@layout/widget_long_1"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_bitmap"
+    android:previewLayout="@layout/widget_bitmap"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen|keyguard"
     android:description="@string/widget_description" />
