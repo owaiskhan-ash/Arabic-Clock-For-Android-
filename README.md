@@ -39,6 +39,14 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 
 ## Install the APK
 
+Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
+Version **2.1.0** applies the selected dark-felt debossed artwork as an adaptive
+launcher icon. The felt background is **only on the app icon**; the widget stays
+fully transparent. Release APKs are currently debug-signed test builds, with SHA-256 checksums.
+The selected source artwork is preserved in `artwork/launcher-icon.png`.
+
+Alternatively, download the CI artifact:
+
 1. Open [GitHub Actions](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/actions/workflows/build-apk.yml).
 2. Choose the latest successful **Build Android APK** run for the working branch.
 3. Download **Arabic-Clock-APK** under Artifacts (GitHub sign-in may be required).
