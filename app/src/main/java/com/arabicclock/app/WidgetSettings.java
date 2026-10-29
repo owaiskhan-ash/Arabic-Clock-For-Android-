@@ -24,6 +24,18 @@ final class WidgetSettings {
             default: return R.font.long_arabic;
         }
     }
+    /** 0 = 24-hour (default, preserves existing installs), 1 = 12-hour. */
+    int hourFormat() {
+        int selected = prefs.getInt("hourFormat", 0);
+        return selected == 1 ? 1 : 0;
+    }
+    boolean hour24() { return hourFormat() == 0; }
+    /** ClockTime.MARKER_ARABIC (default), MARKER_LATIN, or MARKER_NONE. */
+    int marker() {
+        int selected = prefs.getInt("marker", ClockTime.MARKER_ARABIC);
+        return selected >= ClockTime.MARKER_ARABIC && selected <= ClockTime.MARKER_NONE
+                ? selected : ClockTime.MARKER_ARABIC;
+    }
     boolean fill() { return prefs.getBoolean("fill", false); }
     boolean stacked() { return prefs.getBoolean("stacked", false); }
     int gap() { return Math.max(0, Math.min(40, prefs.getInt("gap", 6))); }

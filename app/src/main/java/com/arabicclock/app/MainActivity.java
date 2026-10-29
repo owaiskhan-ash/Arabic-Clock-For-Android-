@@ -76,6 +76,9 @@ public class MainActivity extends Activity {
         controls.addView(label("Customize your widget", 20, gold));
         controls.addView(label("Changes apply to all placed widgets immediately.", 12, Color.LTGRAY));
         addChoices(controls, "Arabic font", new String[]{"Long · Amiri", "Classic · Scheherazade", "Janna LT Bold", "Arslan Wessam A", "18 Khebrat Musamim", "Avenir Heavy"}, settings.font(), "font");
+        addChoices(controls, "Time format", new String[]{"24-hour  ·  ١٤:٠٥", "12-hour  ·  ٢:٠٥ م"}, settings.hourFormat(), "hourFormat");
+        addChoices(controls, "AM/PM marker (12-hour only)", new String[]{"Arabic  ·  ص / م", "Latin  ·  AM / PM", "None"}, settings.marker(), "marker");
+        controls.addView(label("24-hour is the default and keeps the current clock. 12-hour drops the leading zero and adds the marker you choose above.", 12, Color.LTGRAY));
         addChoices(controls, "Numeral width (dots stay unchanged)", new String[]{"Natural", "+15%", "+30%", "+50%", "+75%"}, settings.stretch(), "stretch");
         sizeLabel = label("Font size · " + settings.size() + " sp", 14, Color.WHITE);
         controls.addView(sizeLabel);
@@ -260,7 +263,7 @@ public class MainActivity extends Activity {
         face.setScaleType(ImageView.ScaleType.FIT_CENTER);
         long now = System.currentTimeMillis();
         face.setImageBitmap(ClockRenderer.render(this, settings, width, height, now));
-        face.setContentDescription(ClockRenderer.time(now));
+        face.setContentDescription(ClockRenderer.time(settings, now));
         preview.addView(face, new FrameLayout.LayoutParams(-1,-1));
     }
     private LinearLayout column() { LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.VERTICAL); return v; }

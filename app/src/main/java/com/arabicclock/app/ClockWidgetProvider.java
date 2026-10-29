@@ -60,7 +60,7 @@ public class ClockWidgetProvider extends AppWidgetProvider {
         int height = Math.max(1, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 140));
         long now = System.currentTimeMillis();
         views.setImageViewBitmap(R.id.clock_image, ClockRenderer.render(c, settings, width, height, now));
-        views.setContentDescription(R.id.clock_image, ClockRenderer.time(now));
+        views.setContentDescription(R.id.clock_image, ClockRenderer.time(settings, now));
         PendingIntent open = PendingIntent.getActivity(c, 0, new Intent(c, MainActivity.class),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, open);
