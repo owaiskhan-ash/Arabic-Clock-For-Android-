@@ -1,7 +1,7 @@
 name: Build Android APK
 on:
   push:
-    branches: ['arena/e26e3784-arabic-clock-for-android']
+    branches: ['main', 'arena/**']
   pull_request:
     branches: [main]
   workflow_dispatch:

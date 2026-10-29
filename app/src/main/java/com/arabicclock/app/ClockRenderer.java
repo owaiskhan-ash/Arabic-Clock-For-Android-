@@ -5,14 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
 /** Rasterizes inside our unrestricted app context; launcher font loading is never used. */
 final class ClockRenderer {
-    static String time(long now) {
-        return ArabicDigits.convert(new SimpleDateFormat("HH:mm", Locale.US).format(new Date(now)));
+    /** AM/PM marker size relative to the numeral size; small enough to stay secondary. */
+    private static final float MARKER_SCALE = 0.40f;
+    static String time(WidgetSettings settings, long now) {
+        return ClockTime.of(now, settings.hour24(), settings.marker()).description();
     }
     static Bitmap render(Context c, WidgetSettings settings, int widthDp, int heightDp, long now) {
         float density = c.getResources().getDisplayMetrics().density;
@@ -36,10 +35,18 @@ final class ClockRenderer {
         Paint dots = new Paint(digits);
         dots.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
         dots.setTextScaleX(1f);
-        String time = time(now);
-        Run hours = new Run(time.substring(0, 2), digits, extra);
-        Run minutes = new Run(time.substring(3), digits, extra);
+        ClockTime time = ClockTime.of(now, settings.hour24(), settings.marker());
+        // The AM/PM marker never uses the numeral font: the Amiri subsets contain only
+        // digits, so a missing ص/م glyph would render as tofu on some devices.
+        Paint marks = new Paint(digits);
+        marks.setTypeface(c.getResources().getFont(R.font.janna_lt_bold));
+        marks.setTextSize(digits.getTextSize() * MARKER_SCALE);
+        marks.setTextScaleX(1f);
+        Run hours = new Run(time.hours, digits, extra);
+        Run minutes = new Run(time.minutes, digits, extra);
         Run separator = new Run(":", dots, extra);
+        Run marker = time.marker == null ? null : new Run(time.marker, marks, extra);
+        boolean showMarker = marker != null;
         android.graphics.Rect numeralBounds = new android.graphics.Rect();
         String allDigits = "٠١٢٣٤٥٦٧٨٩";
         digits.getTextBounds(allDigits, 0, allDigits.length(), numeralBounds);
@@ -51,10 +58,17 @@ final class ClockRenderer {
             top = Math.min(top, separator.top);
             bottom = Math.max(bottom, separator.bottom);
         }
+        if (showMarker) {
+            top = Math.min(top, marker.top);
+            bottom = Math.max(bottom, marker.bottom);
+        }
         float rowHeight = Math.max(1, bottom-top);
         float gap = settings.gap() * density;
-        float contentWidth = settings.stacked() ? Math.max(hours.width, minutes.width)
-            : hours.width + gap + (showDots ? separator.width : 0) + minutes.width;
+        float markerGap = digits.getTextSize() * 0.16f;
+        float markerWidth = showMarker ? markerGap + marker.width : 0;
+        float minutesBlock = minutes.width + markerWidth;
+        float contentWidth = settings.stacked() ? Math.max(hours.width, minutesBlock)
+            : hours.width + gap + (showDots ? separator.width : 0) + minutesBlock;
         float contentHeight = settings.stacked() ? rowHeight * 2 + gap : rowHeight;
         float margin = settings.margin() * density;
         float fit = Math.min(Math.max(1, width - 2*margin) / Math.max(1, contentWidth),
@@ -64,12 +78,20 @@ final class ClockRenderer {
         canvas.translate((width-contentWidth*scale)/2, (height-contentHeight*scale)/2);
         canvas.scale(scale, scale);
         if (settings.stacked()) {
+            float minutesX = (contentWidth-minutesBlock)/2;
             hours.draw(canvas, (contentWidth-hours.width)/2, -top, digits, settings, stroke);
-            minutes.draw(canvas, (contentWidth-minutes.width)/2, rowHeight+gap-top, digits, settings, stroke);
+            minutes.draw(canvas, minutesX, rowHeight+gap-top, digits, settings, stroke);
+            if (showMarker) marker.draw(canvas, minutesX+minutes.width+markerGap,
+                    rowHeight+gap-top + (rowHeight-(marker.bottom-marker.top))/2 - marker.top,
+                    marks, settings, stroke * MARKER_SCALE);
         } else {
+            float minutesX = hours.width+gap+(showDots ? separator.width : 0);
             hours.draw(canvas, 0, -top, digits, settings, stroke);
             if (showDots) separator.draw(canvas, hours.width+gap/2, -top, dots, settings, stroke);
-            minutes.draw(canvas, hours.width+gap+(showDots ? separator.width : 0), -top, digits, settings, stroke);
+            minutes.draw(canvas, minutesX, -top, digits, settings, stroke);
+            if (showMarker) marker.draw(canvas, minutesX+minutes.width+markerGap,
+                    -top + (rowHeight-(marker.bottom-marker.top))/2 - marker.top,
+                    marks, settings, stroke * MARKER_SCALE);
         }
         canvas.restoreToCount(layer);
         return bitmap;

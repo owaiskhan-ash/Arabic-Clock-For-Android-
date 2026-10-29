@@ -25,7 +25,10 @@ not in a full-screen clock app.
 - Larger **72 sp** default for new installs; upgrades preserve existing choices.
 - Settings saved locally and applied to **all** placed instances, including supported lock-screen hosts.
 - Tap a placed widget to return to settings; resize via your launcher.
-- Local 24-hour time rendered to a transparent bitmap inside the app, using actual
+- **24-hour or 12-hour** time, selectable in settings. 12-hour mode drops the leading
+  zero and can show an **Arabic ص/م**, **Latin AM/PM**, or **no** marker. 24-hour stays
+  the default, so upgrades look unchanged until you switch.
+- Local time rendered to a transparent bitmap inside the app, using actual
   Arabic-Indic Unicode digits and the selected bundled font. Launchers cannot replace
   those digits with an English fallback font.
 - Minute refresh alarms, with no foreground/background service or network access.
@@ -59,6 +62,7 @@ editing outlines, selection highlights, or host backgrounds are outside app cont
 ## Install the APK
 
 Download the APK directly from [GitHub Releases](https://github.com/owaiskhan-ash/Arabic-Clock-For-Android-/releases).
+Version **2.4.0** adds the 12/24-hour format option and AM/PM markers.
 Version **2.3.0** adds font outlines and full-range font opacity.
 Version **2.2.0** adds the uploaded fonts and huge-widget controls.
 Version **2.1.2** adds Janna LT Bold as a third selectable font.
@@ -84,14 +88,18 @@ privately stored release-signing key.
 
 ## Add and customize
 
-1. Open Arabic Clock and choose a font, numeral width, size, color, and separator style.
+1. Open Arabic Clock and choose a time format (24-hour or 12-hour), font, numeral
+   width, size, color, and separator style.
 2. Enable **Allow precise clock updates** if prompted, then tap **Add home-screen widget** and confirm in your launcher.
 3. If pinning isn't supported, long-press an empty home-screen area → Widgets → Arabic Clock.
 4. Long-press the widget to resize. Tap it to reopen settings.
 5. For supported lock screens, use the **device's** lock-screen widget picker separately.
 
 There are no alarms, stopwatches, weather, date widgets, seconds, or per-widget
-profiles. Time is always local, in 24-hour format, with Arabic-Indic digits.
+profiles. Time is always local, with Arabic-Indic digits, in 24-hour or 12-hour
+format as selected under **Time format**. The AM/PM marker in 12-hour mode is drawn
+with the bundled Janna LT Bold face, because the Amiri/Scheherazade digit-only
+subsets contain no ص/م or Latin letters; numerals keep using your chosen font.
 
 ## Build and checks
 
@@ -120,6 +128,9 @@ Build/lint and static font checks are not a substitute for device testing:
 - Resize, rotate, increase system font size, reboot, and verify no clipping/stale time.
 - Test opacity at 0/25/50/100%, filled/outline-only modes, maximum outline thickness,
   all fonts, stacked mode, and zero-margin HUGE mode; verify edges are not clipped.
+- Switch 24-hour ↔ 12-hour and each marker style; check 1:00, 11:59, 12:00 and
+  23:59 with HUGE and stacked modes to confirm the marker is never clipped.
+- Confirm an upgrade keeps 24-hour format and all previous settings.
 - Test on light and dark wallpapers; confirm no widget background or stretched dots.
 - Test launcher pinning and manual addition, including cancellation.
 - Where supported, add a lock-screen instance and check settings/time updates.

@@ -55,8 +55,10 @@ class WidgetTests(unittest.TestCase):
         provider = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockWidgetProvider.java').read_text()
         self.assertIn('setImageViewBitmap', provider)
         renderer = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockRenderer.java').read_text()
-        self.assertIn('ArabicDigits.convert', renderer)
+        self.assertIn('ClockTime.of(now', renderer)
         self.assertIn('getResources().getFont', renderer)
+        time = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockTime.java').read_text()
+        self.assertIn('ArabicDigits.convert', time)
         self.assertIn('dots.setTextScaleX(1f)', renderer)
 
     def test_outline_and_opacity_rendering_contract(self):
@@ -71,6 +73,30 @@ class WidgetTests(unittest.TestCase):
         self.assertIn('Math.max(0, Math.min(100, prefs.getInt("opacity", 100)))', settings)
         self.assertIn('prefs.getBoolean("outline", false)', settings)
         self.assertIn('prefs.getInt("outlineWidth", 2)', settings)
+
+    def test_twelve_hour_option_contract(self):
+        settings = (ROOT / 'app/src/main/java/com/arabicclock/app/WidgetSettings.java').read_text()
+        self.assertIn('prefs.getInt("hourFormat", 0)', settings)
+        self.assertIn('prefs.getInt("marker", ClockTime.MARKER_ARABIC)', settings)
+        activity = (ROOT / 'app/src/main/java/com/arabicclock/app/MainActivity.java').read_text()
+        self.assertIn('"Time format"', activity)
+        self.assertIn('"AM/PM marker (12-hour only)"', activity)
+        self.assertIn('"hourFormat"', activity)
+        self.assertIn('"marker"', activity)
+        time = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockTime.java').read_text()
+        # The formatter must stay pure so it is unit-testable and time-zone correct.
+        self.assertNotIn('import android.', time)
+        self.assertIn('ArabicDigits.convert(hours)', time)
+        renderer = (ROOT / 'app/src/main/java/com/arabicclock/app/ClockRenderer.java').read_text()
+        self.assertIn('ClockTime.of(now, settings.hour24(), settings.marker())', renderer)
+        # The AM/PM marker must not use the numeral font: the Amiri subsets are
+        # digit-only and lack ص/م, which would render as tofu.
+        self.assertIn('marks.setTypeface(c.getResources().getFont(R.font.janna_lt_bold))', renderer)
+        font = TTFont(RES / 'font/janna_lt_bold.ttf')
+        cmap = font.getBestCmap()
+        for codepoint in (0x635, 0x645, 0x41, 0x4D, 0x50):  # ص م A M P
+            self.assertIn(codepoint, cmap)
+            self.assertNotEqual(cmap[codepoint], '.notdef')
 
     def test_provider_hosts_and_refresh_permissions(self):
         root = ET.parse(RES / 'xml/clock_widget.xml').getroot()
